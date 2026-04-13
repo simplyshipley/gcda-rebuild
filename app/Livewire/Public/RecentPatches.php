@@ -13,7 +13,8 @@ class RecentPatches extends Component
     public function render()
     {
         $patches = Patch::with(['member', 'team', 'match'])
-            ->latest('earned_at')
+            ->orderByDesc('season_id')
+            ->orderByDesc('id')
             ->take(12)
             ->get();
 

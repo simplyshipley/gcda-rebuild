@@ -1,0 +1,182 @@
+@import 'tailwindcss';
+
+/* Source configuration — explicitly exclude Filament vendor Blade files.
+   Filament 3 compiles against Tailwind v3; scanning vendor/filament with
+   v4's JIT produces incompatible class names. Filament CSS is served
+   from public/css/filament/ as precompiled vendor assets. */
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+@source '../**/*.blade.php';
+@source '../**/*.js';
+@source '../../app/**/*.php';
+
+/* GCDA brand colors — from legacy main1.css analysis
+   Primary green: #71a100 (top bar gradient)
+   Dark green:    #6fa100
+   Dark maroon:   #43140E (table header accents)
+   Background:    #000000 (site background)
+   Link blue:     #3282e6
+*/
+@theme {
+    --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+        'Segoe UI Symbol', 'Noto Color Emoji';
+
+    /* GCDA brand */
+    --color-brand:       #71a100;
+    --color-brand-dark:  #5a8000;
+    --color-brand-light: #8bc34a;
+    --color-surface:     #111827;
+    --color-surface-2:   #1f2937;
+    --color-surface-3:   #374151;
+    --color-maroon:      #43140e;
+    --color-link:        #3282e6;
+
+    /* Dart score display */
+    --font-mono-scores: 'JetBrains Mono', 'Fira Code', ui-monospace, monospace;
+}
+
+/* Base dark theme — GCDA is permanently dark-themed.
+   Use CSS custom properties, NOT dark: utility prefixes, to avoid
+   Livewire hydration flash (see G-071/G-092 in gap hunt). */
+@layer base {
+    html {
+        background-color: var(--color-surface);
+        color: #f9fafb;
+    }
+
+    body {
+        background-color: var(--color-surface);
+    }
+
+    a {
+        color: var(--color-link);
+    }
+
+    /* All data tables need th[scope] for WCAG 1.3.1 compliance.
+       Component-level styles enforce this via @layer components. */
+    table caption {
+        font-weight: 600;
+        text-align: left;
+        padding-bottom: 0.5rem;
+        color: #d1d5db;
+    }
+}
+
+/* Skip navigation — WCAG 2.4.1 (G-066) */
+@layer utilities {
+    .skip-nav {
+        position: absolute;
+        left: -9999px;
+        z-index: 9999;
+        padding: 0.5rem 1rem;
+        background: var(--color-brand);
+        color: white;
+        font-weight: 600;
+    }
+    .skip-nav:focus {
+        left: 0;
+        top: 0;
+    }
+}
+
+/* Scoresheet component — tablet-safe layout (G-068/G-089).
+   Side-by-side home/away columns require lg: (1024px), NOT md: (768px).
+   Below lg, teams stack vertically. */
+@layer components {
+    .scoresheet-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+
+    @media (min-width: 1024px) {
+        .scoresheet-grid {
+            grid-template-columns: 1fr 1fr;
+        }
+    }
+
+    .scoresheet-team-header {
+        padding: 0.75rem 1rem;
+        font-weight: 700;
+        font-size: 1.125rem;
+        border-radius: 0.5rem 0.5rem 0 0;
+    }
+
+    .scoresheet-team-header.home {
+        background-color: #1e3a5f;
+        border-left: 4px solid var(--color-brand);
+    }
+
+    .scoresheet-team-header.away {
+        background-color: #3f1a1a;
+        border-left: 4px solid #ef4444;
+    }
+
+    /* Standings table — truncation strategy (G-069/G-090).
+       Names truncate at max-w for all viewports. */
+    .standings-name-cell {
+        max-width: 12rem;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    @media (min-width: 768px) {
+        .standings-name-cell {
+            max-width: 18rem;
+        }
+    }
+
+    /* Loading state — wire:loading convention for PPD cells (G-078/G-093) */
+    .ppd-loading {
+        transition: opacity 150ms ease;
+    }
+
+    /* Error containers — always in DOM, populated on error (G-063) */
+    .field-error {
+        color: #ef4444;
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+    }
+
+    .field-error-border {
+        border-color: #ef4444 !important;
+        box-shadow: 0 0 0 1px #ef4444;
+    }
+}
+
+/* Print styles — scoresheet (G-072/G-094) */
+@media print {
+    nav,
+    header,
+    .no-print,
+    [wire\:loading] {
+        display: none !important;
+    }
+
+    body {
+        background: white;
+        color: black;
+        font-size: 11pt;
+    }
+
+    .scoresheet-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+    }
+
+    table {
+        border-collapse: collapse;
+        width: 100%;
+    }
+
+    td, th {
+        border: 1px solid #ccc;
+        padding: 4px 6px;
+    }
+
+    input {
+        border: none;
+        padding: 0;
+    }
+}
